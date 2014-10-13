@@ -1,0 +1,49 @@
+<head>
+  <title>meteoranalyze</title>
+</head>
+
+<body>
+  {{> packages}}
+</body>
+
+<template name="packages">
+  <input type="checkbox" value="show uses" checked="{{#if showUses}} true {{else}} false {{/if}}">
+
+  <br>{{#if showUses}}
+
+  <table>
+    <thead>
+      <tr>
+        <th>Package</th>
+        <th>Uses</th>
+        <th>Where</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each uses}}
+      <tr>
+        <td>{{this.pkg}}</td>
+
+        <td>
+          {{#each this.uses}} {{this.name}}
+          <br> {{/each}}
+        </td>
+
+        <td>
+          {{#with this.uses.[0]}} {{#each this.arch}}
+          <br> {{this}} {{/each}} {{/with}}
+        </td>
+
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}} {{#each packages}} {{this.pkg}}
+
+  <ul>
+    {{#each this.exports}}
+    <li>{{this.name}} {{#each this.arch}} | {{this}} {{/each}}</li>
+    {{/each}}
+  </ul>
+  {{/each}} {{/if}}
+</template>
