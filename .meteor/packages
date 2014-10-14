@@ -8,4 +8,6 @@ autopublish
 insecure
 analyzer
 gandev:server-eval
+ian:bootstrap-3
+sergeyt:d3
 

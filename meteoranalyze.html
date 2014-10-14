@@ -3,47 +3,52 @@
 </head>
 
 <body>
+  <svg id="dependency-graph"></svg>
+
   {{> packages}}
 </body>
 
 <template name="packages">
-  <input type="checkbox" value="show uses" checked="{{#if showUses}} true {{else}} false {{/if}}">
-
-  <br>{{#if showUses}}
-
-  <table>
+  <table class="table table-striped">
     <thead>
-      <tr>
-        <th>Package</th>
-        <th>Uses</th>
-        <th>Where</th>
-      </tr>
+      <th>Package</th>
+      <th>Exports</th>
+      <th>Uses</th>
+      <th>Imply</th>
+      <th>Files</th>
     </thead>
     <tbody>
-      {{#each uses}}
+      {{#each packages}}
       <tr>
-        <td>{{this.pkg}}</td>
-
         <td>
-          {{#each this.uses}} {{this.name}}
-          <br> {{/each}}
+            {{this.name}}
         </td>
 
         <td>
-          {{#with this.uses.[0]}} {{#each this.arch}}
-          <br> {{this}} {{/each}} {{/with}}
+          {{#each this.exports}}
+            {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}<br>
+          {{/each}}
         </td>
 
+        <td>
+          {{#each this.uses}}
+            {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}<br>
+          {{/each}}
+        </td>
+
+        <td>
+          {{#each this.imply}}
+            {{this.name}} {{#each this.arch}} | {{this}} {{/each}}<br>
+          {{/each}}
+        </td>
+
+        <td>
+          {{#each this.files}}
+            {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}<br>
+          {{/each}}
+        </td>
       </tr>
       {{/each}}
     </tbody>
   </table>
-  {{else}} {{#each packages}} {{this.pkg}}
-
-  <ul>
-    {{#each this.exports}}
-    <li>{{this.name}} {{#each this.arch}} | {{this}} {{/each}}</li>
-    {{/each}}
-  </ul>
-  {{/each}} {{/if}}
 </template>

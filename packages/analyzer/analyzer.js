@@ -14,96 +14,63 @@ var isOnUse = function(statement) {
       callee.property.name === "onUse");
 };
 
-var isExport = function(statement, apiVar) {
+var isApiFunction = function(statement, func, apiVar) {
   if (!isMemberExpression(statement)) return;
 
   var callee = statement.expression.callee;
 
   return callee.object.name === apiVar &&
-    callee.property.name === "export";
+    callee.property.name === func;
 };
 
-var isUse = function(statement, apiVar) {
-  if (!isMemberExpression(statement)) return;
+var parseApiFunctionArgs = function(statement) {
+  var firstArg = statement.expression.arguments[0] || {};
+  var secondArg = statement.expression.arguments[1] || {};
+  var thirdArg = statement.expression.arguments[2] || {};
 
-  var callee = statement.expression.callee;
+  var options = [];
 
-  return callee.object.name === apiVar &&
-    callee.property.name === "use";
-};
-
-var parseExport = function(statement) {
-  var exportArg = statement.expression.arguments[0];
-
-  var exportArchArg = statement.expression.arguments[1] || {};
-  if (exportArchArg.type === "Literal") {
-    exportArchArg = [exportArchArg.value];
-  } else if (exportArchArg.type === "ArrayExpression") {
-    exportArchArg = _.map(exportArchArg.elements,
+  var arch = ["anywhere"];
+  if (secondArg.type === "Literal") {
+    arch = [secondArg.value];
+  } else if (secondArg.type === "ArrayExpression") {
+    arch = _.map(secondArg.elements,
       function(elem) {
         return elem.value;
       });
-  } else {
-    //no arch specified
-    exportArchArg = ["everywhere"];
   }
 
-  var exportArch = {
-    arch: exportArchArg
-  };
-
-  var exports = [];
-
-  if (exportArg.type === "Literal") {
-    exports.push(_.extend({
-      name: exportArg.value
-    }, exportArch));
-  } else if (exportArg.type === "ArrayExpression") {
-    _.each(exportArg.elements, function(elem) {
-      exports.push(_.extend({
-        name: elem.value
-      }, exportArch));
+  if (secondArg.type === "ObjectExpression" || thirdArg && thirdArg.type === "ObjectExpression") {
+    _.each(secondArg.properties || thirdArg.properties, function(prop) {
+      if (prop.value.type === "Literal") {
+        options.push({
+          name: prop.key.name,
+          value: prop.value.value
+        });
+      }
     });
   }
 
-  return exports;
-};
-
-var parseUse = function(statement) {
-  var exportArg = statement.expression.arguments[0];
-
-  var exportArchArg = statement.expression.arguments[1] || {};
-  if (exportArchArg.type === "Literal") {
-    exportArchArg = [exportArchArg.value];
-  } else if (exportArchArg.type === "ArrayExpression") {
-    exportArchArg = _.map(exportArchArg.elements,
-      function(elem) {
-        return elem.value;
-      });
-  } else {
-    //no arch specified
-    exportArchArg = ["everywhere"];
-  }
-
-  var exportArch = {
-    arch: exportArchArg
-  };
-
-  var exports = [];
-
-  if (exportArg.type === "Literal") {
-    exports.push(_.extend({
-      name: exportArg.value
-    }, exportArch));
-  } else if (exportArg.type === "ArrayExpression") {
-    _.each(exportArg.elements, function(elem) {
-      exports.push(_.extend({
+  var results = [];
+  if (firstArg.type === "Literal") {
+    results.push(_.extend({
+      name: firstArg.value
+    }, {
+      arch: arch,
+      options: options
+    }));
+  } else if (firstArg.type === "ArrayExpression") {
+    _.each(firstArg.elements, function(elem) {
+      results.push(_.extend({
         name: elem.value
-      }, exportArch));
+      }, {
+        arch: arch,
+        options: options
+      }));
     });
   }
 
-  return exports;
+  return results;
 };
 
 Analyzer = function() {
@@ -111,7 +78,7 @@ Analyzer = function() {
   var path = Npm.require('path');
   var esprima = Npm.require('esprima');
 
-  var root = '/home/ag/dev/meteor/packages';
+  var root = '/Users/ares/dev/js/meteor/packages';
 
   var packageFolders = fs.readdirSync(root);
   var packages = {};
@@ -130,16 +97,23 @@ Analyzer = function() {
       var packageJsTree = esprima.parse(packageJsSource);
 
       packages[pkg] = {
-        _ast: packageJsTree
+        _ast: packageJsTree,
+        name: pkg,
+        exports: [],
+        uses: [],
+        imply: [],
+        files: []
       };
     }
   });
 
   this.packages = packages;
+
+  this._analyze();
 };
 
-Analyzer.prototype.getPackageExports = function() {
-  var exports = {};
+Analyzer.prototype._analyze = function() {
+  var self = this;
 
   _.each(this.packages, function(pkg, pkgName) {
     _.each(pkg._ast.body, function(statement) {
@@ -150,62 +124,32 @@ Analyzer.prototype.getPackageExports = function() {
         if (onUseFunc && onUseFunc.type === "FunctionExpression") {
           var apiVar = onUseFunc.params[0].name;
 
-          _.each(onUseFunc.body.body, function(statement) {
-            if (isExport(statement, apiVar)) {
-              var exportsByStatement = parseExport(statement);
+          var pkgObj = self.packages[pkgName];
 
-              if (!exports[pkgName]) {
-                exports[pkgName] = {
-                  pkg: pkgName,
-                  exports: exportsByStatement
-                };
-              } else {
-                exports[pkgName].exports = exports[pkgName].exports.concat(exportsByStatement);
-              }
+          _.each(onUseFunc.body.body, function(statement) {
+            if (isApiFunction(statement, "export", apiVar)) {
+              pkgObj.exports = pkgObj.exports.concat(parseApiFunctionArgs(statement));
+            }
+
+            if (isApiFunction(statement, "use", apiVar)) {
+              pkgObj.uses = pkgObj.uses.concat(parseApiFunctionArgs(statement));
+            }
+
+            if (isApiFunction(statement, "imply", apiVar)) {
+              pkgObj.imply = pkgObj.imply.concat(parseApiFunctionArgs(statement));
+            }
+
+            if (isApiFunction(statement, "addFiles", apiVar) ||
+              isApiFunction(statement, "add_files", apiVar)) {
+              pkgObj.files = pkgObj.files.concat(parseApiFunctionArgs(statement));
             }
           });
         }
       }
     });
   });
-
-  this.exports = exports;
-
-  return this.exports;
 };
 
-Analyzer.prototype.getPackageUses = function() {
-  var uses = {};
-
-  _.each(this.packages, function(pkg, pkgName) {
-    _.each(pkg._ast.body, function(statement) {
-      if (isOnUse(statement)) {
-        var onUseArgs = statement.expression.arguments;
-
-        var onUseFunc = onUseArgs[0];
-        if (onUseFunc && onUseFunc.type === "FunctionExpression") {
-          var apiVar = onUseFunc.params[0].name;
-
-          _.each(onUseFunc.body.body, function(statement) {
-            if (isUse(statement, apiVar)) {
-              var usesByStatement = parseUse(statement);
-
-              if (!uses[pkgName]) {
-                uses[pkgName] = {
-                  pkg: pkgName,
-                  uses: usesByStatement
-                };
-              } else {
-                uses[pkgName].uses = uses[pkgName].uses.concat(usesByStatement);
-              }
-            }
-          });
-        }
-      }
-    });
-  });
-
-  this.uses = uses;
-
-  return this.uses;
+Analyzer.prototype.getPackages = function() {
+  return this.packages;
 };
