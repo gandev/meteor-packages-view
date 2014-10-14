@@ -9,7 +9,7 @@ Package.onUse(function(api) {
 
   api.use('underscore');
 
-  api.addFiles('analyzer.js');
+  api.addFiles('analyzer.js', 'server');
 
   api.export('Analyzer');
 });

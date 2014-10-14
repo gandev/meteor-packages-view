@@ -73,12 +73,10 @@ var parseApiFunctionArgs = function(statement) {
   return results;
 };
 
-Analyzer = function() {
+Analyzer = function(root) {
   var fs = Npm.require('fs');
   var path = Npm.require('path');
   var esprima = Npm.require('esprima');
-
-  var root = '/Users/ares/dev/js/meteor/packages';
 
   var packageFolders = fs.readdirSync(root);
   var packages = {};

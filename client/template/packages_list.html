@@ -1,0 +1,40 @@
+<template name="packages_list">
+  <table class="table table-striped">
+    <thead>
+      <th>Package</th>
+      <th>Exports</th>
+      <th>Uses</th>
+      <th>Imply</th>
+      <th>Files</th>
+    </thead>
+    <tbody>
+      {{#each packages}}
+      <tr>
+        <td>
+          {{this.name}}
+        </td>
+
+        <td>
+          {{#each this.exports}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+          <br> {{/each}}
+        </td>
+
+        <td>
+          {{#each this.uses}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+          <br> {{/each}}
+        </td>
+
+        <td>
+          {{#each this.imply}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}}
+          <br> {{/each}}
+        </td>
+
+        <td>
+          {{#each this.files}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+          <br> {{/each}}
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</template>
