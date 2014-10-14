@@ -1,24 +1,3 @@
-Template.dependency_graph.rendered = function() {
-  $("#packages_select").chosen();
-
-  $("#packages_select").on("change", function(evt) {
-    packagesFilter.set(_.map(evt.target.selectedOptions, function(option) {
-      return option.value;
-    }));
-  });
-
-  //TODO investigate...
-  //TODO flush after packages cursor reruns and adds options to select
-  //TODO always before added callback runs or just the call order?
-  Packages.find().observe({
-    added: _.throttle(function() {
-      $("#packages_select").trigger("chosen:updated");
-    }, 500)
-  });
-};
-
-var packagesFilter = new ReactiveVar([]);
-
 ForceVariants = {};
 
 Session.setDefault("FORCE", "renderForce1");
@@ -171,58 +150,62 @@ ForceVariants.renderForce2 = function(svg, force) {
   });
 };
 
-Meteor.autorun(function() {
-  console.log("rerender graph");
+var renderAutorun;
 
-  var allPackages = Packages.find().fetch();
+Template.dependency_graph.rendered = function() {
+  renderAutorun = Tracker.autorun(function() {
+    console.log("rerender graph");
 
-  var packages = {};
-  _.each(allPackages, function(pkg) {
-    packages[pkg.name] = pkg;
-  });
+    var allPackages = Packages.find().fetch();
 
-  var packagesToWatch = Packages.find({
-    name: {
-      '$in': packagesFilter.get()
-    }
-  }).fetch();
-
-  var links = [];
-
-  var nodes = {};
-  _.each(packagesToWatch, function(pkg) {
-    nodes[pkg.name] = packages[pkg.name];
-  });
-
-  _.each(packagesToWatch, function(pkg) {
-    _.each(pkg.uses, function(use) {
-      if (packages[use.name]) {
-        if (!nodes[use.name]) {
-          nodes[use.name] = packages[use.name];
-        }
-
-        links.push({
-          source: packages[use.name],
-          target: packages[pkg.name],
-          value: 1.0
-        });
-      }
+    var packages = {};
+    _.each(allPackages, function(pkg) {
+      packages[pkg.name] = pkg;
     });
+
+    var packagesToWatch = getSelectedPackages().fetch();
+
+    var links = [];
+
+    var nodes = {};
+    _.each(packagesToWatch, function(pkg) {
+      nodes[pkg.name] = packages[pkg.name];
+    });
+
+    _.each(packagesToWatch, function(pkg) {
+      _.each(pkg.uses, function(use) {
+        if (packages[use.name]) {
+          if (!nodes[use.name]) {
+            nodes[use.name] = packages[use.name];
+          }
+
+          links.push({
+            source: packages[use.name],
+            target: packages[pkg.name],
+            value: 1.0
+          });
+        }
+      });
+    });
+
+    var width = 900,
+      height = 600;
+
+    var svg = d3.select("#dependency-graph")
+      .attr("width", width)
+      .attr("height", height);
+
+    svg.selectAll("*").remove();
+
+    var force = d3.layout.force()
+      .nodes(d3.values(nodes))
+      .links(links)
+      .size([width, height]);
+
+    ForceVariants[Session.get("FORCE")](svg, force);
   });
+};
 
-  var width = 900,
-    height = 600;
-
-  var svg = d3.select("#dependency-graph")
-    .attr("width", width)
-    .attr("height", height);
-
-  svg.selectAll("*").remove();
-
-  var force = d3.layout.force()
-    .nodes(d3.values(nodes))
-    .links(links)
-    .size([width, height]);
-
-  ForceVariants[Session.get("FORCE")](svg, force);
-});
+Template.dependency_graph.destroyed = function() {
+  if (renderAutorun) renderAutorun.stop();
+};

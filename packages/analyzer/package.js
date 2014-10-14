@@ -4,6 +4,10 @@ Package.describe({
   git: ""
 });
 
+Npm.depends({
+  'escope': '1.0.1'
+});
+
 Package.onUse(function(api) {
   api.versionsFrom('METEOR@0.9.3.1');
 

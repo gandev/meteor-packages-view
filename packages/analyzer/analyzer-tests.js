@@ -1,5 +1,9 @@
-Tinytest.add('extract exports from all meteor packages', function(test) {
-  var analyzer = new Analyzer();
+var analyzer = new Analyzer('/home/ag/dev/meteor/packages');
 
-  test.isTrue(_.keys(analyzer.getPackageExports()).length > 0);
+Tinytest.add('extract exports from all meteor packages', function(test) {
+  test.isTrue(_.keys(analyzer.getPackages()).length > 0);
+});
+
+Tinytest.add('find occurences of export', function(test) {
+  console.log(analyzer.getOccurences('ddp', 'LocalCollection'));
 });

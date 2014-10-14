@@ -1,0 +1,18 @@
+<template name="crossref">
+  <select id="globals_filter" data-placeholder="Choose a global..." style="width:350px;" multiple class="chosen-select">
+    {{#each globalsUnique}}
+    <option>{{this}}</option>
+    {{/each}}
+  </select>
+
+  {{#each packagesSelected}}
+  <h2>{{name}}</h2> {{#each this.files}} {{#if globalsFiltered}}
+  <h4>{{this.name}}</h4>
+
+  <ul>
+    {{#each globalsFiltered}}
+    <li>{{this.name}} : {{this.line}}</li>
+    {{/each}}
+  </ul>
+  {{/if}} {{/each}} {{/each}}
+</template>

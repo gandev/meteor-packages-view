@@ -3,5 +3,19 @@
 </head>
 
 <body>
-  {{> dependency_graph}} {{> packages_list}}
+
 </body>
+
+<template name="AppLayout">
+  {{> package_select}}
+  <ul class="nav nav-pills">
+    <li class="active"><a href="/packages_list">Package list</a>
+    </li>
+    <li><a href="/crossref">Crossref</a>
+    </li>
+    <li><a href="/dependency_graph">Dependency graph</a>
+    </li>
+  </ul>
+
+  <div>{{> yield}}</div>
+</template>

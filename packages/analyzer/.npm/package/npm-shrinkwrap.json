@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "escope": {
+      "version": "1.0.1",
+      "dependencies": {
+        "estraverse": {
+          "version": "1.5.1"
+        }
+      }
+    }
+  }
+}

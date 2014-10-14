@@ -1,6 +1,8 @@
 if (Meteor.isServer) {
   Meteor.methods({
     'analyzePackages': function() {
+      console.time("analyzePackages");
+
       Packages.remove({});
 
       //var analyzer = new Analyzer('/Users/ares/dev/js/meteor/packages');
@@ -11,6 +13,8 @@ if (Meteor.isServer) {
       _.each(packages, function(pkg) {
         Packages.insert(pkg);
       });
+
+      console.timeEnd("analyzePackages");
     }
   });
 }

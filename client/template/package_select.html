@@ -1,0 +1,7 @@
+<template name="package_select">
+  <select id="packages_select" data-placeholder="Choose a package..." style="width:350px;" multiple class="chosen-select">
+    {{#each packages}}
+    <option>{{this.name}}</option>
+    {{/each}}
+  </select>
+</template>

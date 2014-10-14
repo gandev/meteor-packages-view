@@ -1,3 +1,8 @@
+var fs = Npm.require('fs');
+var path = Npm.require('path');
+var esprima = Npm.require('esprima');
+var escope = Npm.require('escope');
+
 var isMemberExpression = function(statement) {
   return statement.type === "ExpressionStatement" &&
     statement.expression.type === "CallExpression" &&
@@ -74,20 +79,17 @@ var parseApiFunctionArgs = function(statement) {
 };
 
 Analyzer = function(root) {
-  var fs = Npm.require('fs');
-  var path = Npm.require('path');
-  var esprima = Npm.require('esprima');
-
   var packageFolders = fs.readdirSync(root);
   var packages = {};
 
   _.each(packageFolders || [], function(pkg) {
-    var pkgStat = fs.statSync(path.join(root, pkg));
+    var packagePath = path.join(root, pkg);
+    var pkgStat = fs.statSync(packagePath);
 
     if (pkgStat.isDirectory()) {
       var packageJsSource;
       try {
-        packageJsSource = fs.readFileSync(path.join(root, pkg, 'package.js'));
+        packageJsSource = fs.readFileSync(path.join(packagePath, 'package.js'));
       } catch (e) {
         return;
       }
@@ -97,6 +99,7 @@ Analyzer = function(root) {
       packages[pkg] = {
         _ast: packageJsTree,
         name: pkg,
+        folder: packagePath,
         exports: [],
         uses: [],
         imply: [],
@@ -113,7 +116,8 @@ Analyzer = function(root) {
 Analyzer.prototype._analyze = function() {
   var self = this;
 
-  _.each(this.packages, function(pkg, pkgName) {
+  _.each(this.packages, function(pkg) {
+    //TODO use estraverse !?
     _.each(pkg._ast.body, function(statement) {
       if (isOnUse(statement)) {
         var onUseArgs = statement.expression.arguments;
@@ -122,27 +126,49 @@ Analyzer.prototype._analyze = function() {
         if (onUseFunc && onUseFunc.type === "FunctionExpression") {
           var apiVar = onUseFunc.params[0].name;
 
-          var pkgObj = self.packages[pkgName];
-
           _.each(onUseFunc.body.body, function(statement) {
             if (isApiFunction(statement, "export", apiVar)) {
-              pkgObj.exports = pkgObj.exports.concat(parseApiFunctionArgs(statement));
+              pkg.exports = pkg.exports.concat(parseApiFunctionArgs(statement));
             }
 
             if (isApiFunction(statement, "use", apiVar)) {
-              pkgObj.uses = pkgObj.uses.concat(parseApiFunctionArgs(statement));
+              pkg.uses = pkg.uses.concat(parseApiFunctionArgs(statement));
             }
 
             if (isApiFunction(statement, "imply", apiVar)) {
-              pkgObj.imply = pkgObj.imply.concat(parseApiFunctionArgs(statement));
+              pkg.imply = pkg.imply.concat(parseApiFunctionArgs(statement));
             }
 
             if (isApiFunction(statement, "addFiles", apiVar) ||
               isApiFunction(statement, "add_files", apiVar)) {
-              pkgObj.files = pkgObj.files.concat(parseApiFunctionArgs(statement));
+              pkg.files = pkg.files.concat(parseApiFunctionArgs(statement));
             }
           });
         }
+      }
+    });
+  });
+
+  //TODO link globals to definition/exports
+  _.each(this.packages, function(pkg) {
+    _.each(pkg.files, function(file) {
+      if (/\.js$/i.test(file.name)) {
+        var fileContent = fs.readFileSync(path.join(pkg.folder, file.name));
+
+        var content = "(function(){\n" + fileContent + "\n})();";
+
+        var ast = esprima.parse(content, {
+          range: true,
+          loc: true
+        });
+        var scopes = escope.analyze(ast).scopes;
+
+        file.globals = _.map(scopes[0].through, function(ref) {
+          return {
+            name: ref.identifier.name,
+            line: ref.identifier.loc.start.line - 1
+          };
+        });
       }
     });
   });
