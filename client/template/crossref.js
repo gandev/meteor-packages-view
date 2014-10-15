@@ -16,9 +16,6 @@ Template.crossref.destroyed = function() {
   $('#globals_filter').chosen('destroy');
 };
 
-//TODO github link
-//TODO https://github.com/meteor/meteor/blob/devel/packages/ddp/crossbar.js#L50
-
 Template.crossref.helpers({
   packagesSelected: function() {
     return getSelectedPackages();
@@ -47,5 +44,14 @@ Template.crossref.helpers({
     });
 
     return _.uniq(globals);
+  },
+  github: function() {
+    var baseUrl = "https://github.com/meteor/meteor/blob/devel/packages";
+
+    var global = this;
+    var file = Template.parentData(1);
+    var pkg = Template.parentData(2);
+
+    return baseUrl + "/" + pkg.name + "/" + file.name + "#L" + global.line;
   }
 });
