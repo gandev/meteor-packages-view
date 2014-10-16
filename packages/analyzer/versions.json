@@ -1,11 +1,19 @@
 {
   "dependencies": [
     [
+      "http",
+      "1.0.7"
+    ],
+    [
       "meteor",
       "1.1.2"
     ],
     [
       "underscore",
+      "1.0.1"
+    ],
+    [
+      "url",
       "1.0.1"
     ]
   ],

@@ -9,11 +9,13 @@ Npm.depends({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('METEOR@0.9.3.1');
+  api.versionsFrom('METEOR@0.9.4');
 
   api.use('underscore');
+  api.use('http');
 
   api.addFiles('analyzer.js', 'server');
+  api.addFiles('github_data.js', 'server');
 
   api.export('Analyzer');
 });

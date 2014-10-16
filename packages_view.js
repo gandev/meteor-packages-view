@@ -6,7 +6,9 @@ if (Meteor.isServer) {
       Packages.remove({});
 
       //var analyzer = new Analyzer('/Users/ares/dev/js/meteor/packages');
-      var analyzer = new Analyzer('/home/ag/dev/meteor/packages');
+      //var analyzer = new Analyzer('/home/ag/dev/meteor/packages');
+
+      var analyzer = new Analyzer("/repos/meteor/meteor/contents/packages", true);
 
       var packages = analyzer.getPackages();
 

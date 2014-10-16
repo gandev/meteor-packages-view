@@ -78,27 +78,52 @@ var parseApiFunctionArgs = function(statement) {
   return results;
 };
 
-Analyzer = function(root) {
-  var packageFolders = fs.readdirSync(root);
+Analyzer = function(root, githubIsSource) {
+  var self = this;
+
+  if (githubIsSource) {
+    this.readDir = Analyzer.readDirGithub;
+    this.readFile = Analyzer.readFileGithub;
+  } else {
+    this.readDir = function() {
+      var files = fs.readdirSync(root);
+
+      var dirList = [];
+      _.each(files, function(file) {
+        var packagePath = path.join(root, file);
+
+        var fileStat = fs.statSync(packagePath);
+
+        dirList.push({
+          name: file,
+          isDirectory: fileStat.isDirectory()
+        });
+      });
+
+      return dirList;
+    };
+    this.readFile = fs.readFileSync;
+  }
+
+  var dirList = self.readDir(root);
   var packages = {};
 
-  _.each(packageFolders || [], function(pkg) {
-    var packagePath = path.join(root, pkg);
-    var pkgStat = fs.statSync(packagePath);
+  _.each(dirList || [], function(file) {
+    var packagePath = path.join(root, file.name);
 
-    if (pkgStat.isDirectory()) {
+    if (file.isDirectory) {
       var packageJsSource;
       try {
-        packageJsSource = fs.readFileSync(path.join(packagePath, 'package.js'));
+        packageJsSource = self.readFile(path.join(packagePath, 'package.js'));
       } catch (e) {
         return;
       }
 
       var packageJsTree = esprima.parse(packageJsSource);
 
-      packages[pkg] = {
+      packages[file.name] = {
         _ast: packageJsTree,
-        name: pkg,
+        name: file.name, //TODO real name!?
         folder: packagePath,
         exports: [],
         uses: [],
@@ -153,7 +178,7 @@ Analyzer.prototype._analyze = function() {
   _.each(this.packages, function(pkg) {
     _.each(pkg.files, function(file) {
       if (/\.js$/i.test(file.name)) {
-        var fileContent = fs.readFileSync(path.join(pkg.folder, file.name));
+        var fileContent = self.readFile(path.join(pkg.folder, file.name));
 
         var content = "(function(){\n" + fileContent + "\n})();";
 
