@@ -33,6 +33,7 @@ iron:router@1.0.0-pre4
 iron:url@1.0.0-pre4
 jquery@1.0.1
 json@1.0.1
+launch-screen@1.0.0
 livedata@1.0.11
 logging@1.0.4
 meteor-platform@1.1.2

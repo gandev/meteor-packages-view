@@ -128,7 +128,8 @@ Analyzer = function(root, githubIsSource) {
         exports: [],
         uses: [],
         imply: [],
-        files: []
+        files: [],
+        usedExports: {}
       };
     }
   });
@@ -141,7 +142,7 @@ Analyzer = function(root, githubIsSource) {
 Analyzer.prototype._analyze = function() {
   var self = this;
 
-  _.each(this.packages, function(pkg) {
+  _.each(self.packages, function(pkg) {
     //TODO use estraverse !?
     _.each(pkg._ast.body, function(statement) {
       if (isOnUse(statement)) {
@@ -174,8 +175,8 @@ Analyzer.prototype._analyze = function() {
     });
   });
 
-  //TODO link globals to definition/exports
-  _.each(this.packages, function(pkg) {
+  //TODO link globals to definition
+  _.each(self.packages, function(pkg) {
     _.each(pkg.files, function(file) {
       if (/\.js$/i.test(file.name)) {
         var fileContent = self.readFile(path.join(pkg.folder, file.name));
@@ -194,6 +195,34 @@ Analyzer.prototype._analyze = function() {
             line: ref.identifier.loc.start.line - 1
           };
         });
+      }
+    });
+  });
+
+  _.each(self.packages, function(pkg) {
+    var globalsByPackage = [];
+    _.each(pkg.files, function(file) {
+      _.each(file.globals, function(global) {
+        globalsByPackage.push(global.name);
+      });
+    });
+
+    var usedPackageNames = _.map(pkg.uses, function(use) {
+      return use.name;
+    });
+
+    var usedPackages = _.filter(self.packages, function(pkg) {
+      return _.contains(usedPackageNames, pkg.name);
+    });
+
+    _.each(usedPackages, function(pkgUsed) {
+      var exports = _.map(pkgUsed.exports, function(exp) {
+        return exp.name;
+      });
+      var usedExports = _.intersection(globalsByPackage, exports);
+
+      if (usedExports.length > 0) {
+        pkg.usedExports[pkgUsed.name] = usedExports;
       }
     });
   });

@@ -1,4 +1,10 @@
 <template name="packages_list">
+  <h3>Selected packages</h3> {{> packages_table packagesSelected}}
+
+  <h3>Dependent packages</h3> {{> packages_table packagesDependent}}
+</template>
+
+<template name="packages_table">
   <table class="table table-striped">
     <thead>
       <th>Package</th>
@@ -8,32 +14,39 @@
       <th>Files</th>
     </thead>
     <tbody>
-      {{#each packages}}
-      <tr>
-        <td>
-          {{this.name}}
-        </td>
+      {{#each this}}
+        <tr>
+          <td>
+            {{this.name}}
+          </td>
 
-        <td>
-          {{#each this.exports}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
-          <br> {{/each}}
-        </td>
+          <td>
+            {{#each this.exports}} {{this.name}}
+              {{#each this.arch}} | {{this}} {{/each}}
+              {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+              <br> {{/each}}
+          </td>
 
-        <td>
-          {{#each this.uses}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
-          <br> {{/each}}
-        </td>
+          <td>
+            {{#each this.uses}} {{this.name}}
+              {{#each this.arch}} | {{this}} {{/each}}
+              {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+              <br> {{/each}}
+          </td>
 
-        <td>
-          {{#each this.imply}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}}
-          <br> {{/each}}
-        </td>
+          <td>
+            {{#each this.imply}} {{this.name}}
+              {{#each this.arch}} | {{this}} {{/each}}
+              <br> {{/each}}
+          </td>
 
-        <td>
-          {{#each this.files}} {{this.name}} {{#each this.arch}} | {{this}} {{/each}} {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
-          <br> {{/each}}
-        </td>
-      </tr>
+          <td>
+            {{#each this.files}} {{this.name}}
+              {{#each this.arch}} | {{this}} {{/each}}
+              {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+              <br> {{/each}}
+          </td>
+        </tr>
       {{/each}}
     </tbody>
   </table>

@@ -1,7 +1,8 @@
 <template name="package_select">
+  <label for="packages_select">Select packages:</label>
   <select id="packages_select" data-placeholder="Choose a package..." style="width:350px;" multiple class="chosen-select">
     {{#each packages}}
-    <option>{{this.name}}</option>
+      <option>{{this.name}}</option>
     {{/each}}
   </select>
 </template>

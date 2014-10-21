@@ -3,19 +3,25 @@
 </head>
 
 <body>
-
 </body>
 
 <template name="AppLayout">
-  {{> package_select}}
-  <ul class="nav nav-pills">
-    <li class="active"><a href="/packages_list">Package list</a>
-    </li>
-    <li><a href="/crossref">Crossref</a>
-    </li>
-    <li><a href="/dependency_graph">Dependency graph</a>
-    </li>
-  </ul>
+  <div class="container-fluid" style="margin-top: 5px;">
+    <ul class="nav nav-pills">
+      <li class="{{activeTab "/packages_list"}}"><a href="/packages_list">Package list</a>
+      </li>
+      <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
+      </li>
+      <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
+      </li>
+    </ul>
+  </div>
 
-  <div>{{> yield}}</div>
+  <div class="container-fluid" style="margin-top: 5px;">
+    {{> package_select}}
+  </div>
+
+  <div class="container-fluid" style="margin-top: 5px;">
+    {{> yield}}
+  </div>
 </template>

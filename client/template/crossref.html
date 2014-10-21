@@ -1,20 +1,38 @@
 <template name="crossref">
-  <select id="globals_filter" data-placeholder="Choose a global..." style="width:350px;" multiple class="chosen-select">
-    {{#each globalsUnique}}
-    <option>{{this}}</option>
-    {{/each}}
-  </select>
+  <div class="row">
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+      <label for="used_exports_filter">Used exports from dependencies:</label>
+      <select id="used_exports_filter" data-placeholder="Choose a export..." style="width:350px;" multiple class="chosen-select">
+        {{#each usedExportsOfDependentPackages}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+      <label for="globals_filter">Package globals:</label>
+      <select id="globals_filter" data-placeholder="Choose a package global..." style="width:350px;" multiple class="chosen-select">
+        {{#each packageGlobals}}
+          <option>{{this}}</option>
+        {{/each}}
+      </select>
+    </div>
+  </div>
 
   {{#each packagesSelected}}
-  <h2>{{name}}</h2> {{#each this.files}} {{#if globalsFiltered}}
-  <h4>{{this.name}}</h4>
+    <h2>{{name}}</h2>
+    {{#each this.files}}
+      {{#if globalsFiltered}}
+        <h4>{{this.name}}</h4>
 
-  <ul>
-    {{#each globalsFiltered}}
-    <li>
-      <a target="_blank" href="{{github}}">{{this.name}} : {{this.line}}</a>
-    </li>
+        <ul>
+          {{#each globalsFiltered}}
+            <li>
+              <a target="_blank" href="{{github}}">{{this.name}} : {{this.line}}</a>
+            </li>
+          {{/each}}
+        </ul>
+      {{/if}}
     {{/each}}
-  </ul>
-  {{/if}} {{/each}} {{/each}}
+  {{/each}}
 </template>

@@ -1,5 +1,7 @@
 Template.package_select.rendered = function() {
-  $("#packages_select").chosen();
+  $("#packages_select").chosen({
+    width: '100%'
+  });
 
   $("#packages_select").on("change", function(evt) {
     packagesFilter.set(_.map(evt.target.selectedOptions, function(option) {
