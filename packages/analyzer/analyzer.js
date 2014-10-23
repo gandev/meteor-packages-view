@@ -181,6 +181,7 @@ Analyzer.prototype._analyze = function() {
         var fileContent = self.readFile(path.join(pkg.folder, file.name));
 
         var content = "(function(){\n" + fileContent + "\n});";
+        var contentLines = content.split("\n");
 
         var ast = esprima.parse(content, {
           range: true,
@@ -189,23 +190,19 @@ Analyzer.prototype._analyze = function() {
         var scopes = escope.analyze(ast).scopes;
 
         file.globals = _.map(scopes[0].through, function(ref) {
+          var lineNumber = ref.identifier.loc.start.line - 1;
+
           return {
             name: ref.identifier.name,
-            line: ref.identifier.loc.start.line - 1
+            lineContent: contentLines[lineNumber],
+            line: lineNumber
           };
         });
 
         _.each(scopes[0].implicit.variables, function(globalVar) {
-          var lines = _.map(globalVar.identifiers, function(identifier) {
-            return identifier.loc.start.line - 1;
-          });
-
           if (!file.packageGlobals) file.packageGlobals = [];
 
-          file.packageGlobals.push({
-            name: globalVar.name,
-            lines: lines
-          });
+          file.packageGlobals.push(globalVar.name);
         });
       }
     });
@@ -224,7 +221,8 @@ Analyzer.prototype._analyze = function() {
     });
 
     var usedPackages = _.filter(self.packages, function(pkg) {
-      return _.contains(usedPackageNames, pkg.name);
+      //every Package gets Meteor by design
+      return _.contains(usedPackageNames, pkg.name) || pkg.name === "meteor";
     });
 
     _.each(usedPackages, function(pkgUsed) {
@@ -234,7 +232,7 @@ Analyzer.prototype._analyze = function() {
       var usedExports = _.intersection(globalsByPackage, exports);
 
       if (usedExports.length > 0) {
-        pkg.usedExports[pkgUsed.name] = usedExports;
+        pkg.usedExports[pkgUsed.name] = _.uniq(usedExports);
       }
     });
   });

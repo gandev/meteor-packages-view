@@ -28,7 +28,8 @@
         <ul>
           {{#each globalsFiltered}}
             <li>
-              <a target="_blank" href="{{github}}">{{this.name}} : {{this.line}}</a>
+              <a target="_blank" href="{{github}}">{{this.name}} :{{this.line}}</a>
+              <code>{{this.lineContent}}</code>
             </li>
           {{/each}}
         </ul>

@@ -58,9 +58,9 @@ var getPackageGlobals = function(pkg) {
   var globals = [];
 
   _.each(pkg.files, function(file) {
-    _.each(file.packageGlobals || [], function(global) {
-      globals.push(global.name);
-    });
+    if (file.packageGlobals) {
+      globals = globals.concat(file.packageGlobals);
+    }
   });
 
   return globals;

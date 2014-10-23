@@ -1,7 +1,11 @@
 <template name="packages_list">
-  <h3>Selected packages</h3> {{> packages_table packagesSelected}}
+  <input id="show_all_packages" type="checkbox" {{showAllPackagesChecked}} /> show all packages
 
-  <h3>Dependent packages</h3> {{> packages_table packagesDependent}}
+  {{#unless showAllPackagesChecked}}
+    {{> packages_table packagesSelected}}
+    {{else}}
+      {{> packages_table packages}}
+  {{/unless}}
 </template>
 
 <template name="packages_table">
