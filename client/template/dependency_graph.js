@@ -173,6 +173,20 @@ Template.dependency_graph.rendered = function() {
     });
 
     _.each(packagesToWatch, function(pkg) {
+      _.each(pkg.usedInPackages, function(name) {
+        if (packages[name]) {
+          if (!nodes[name]) {
+            nodes[name] = packages[name];
+          }
+
+          links.push({
+            source: packages[pkg.name],
+            target: packages[name],
+            value: 1.0
+          });
+        }
+      });
+
       _.each(pkg.uses, function(use) {
         if (packages[use.name]) {
           if (!nodes[use.name]) {

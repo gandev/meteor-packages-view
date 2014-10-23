@@ -176,6 +176,21 @@ Analyzer.prototype._analyze = function() {
   });
 
   _.each(self.packages, function(pkg) {
+    var usedInPackages = [];
+    _.each(self.packages, function(pkgUsesSearch) {
+      var isUsed = _.find(pkgUsesSearch.uses, function(use){
+        return use.name === pkg.name;
+      });
+
+      if(isUsed) {
+        usedInPackages.push(pkgUsesSearch.name);
+      }
+    });
+
+    pkg.usedInPackages = usedInPackages;
+  });
+
+  _.each(self.packages, function(pkg) {
     _.each(pkg.files, function(file) {
       if (/\.js$/i.test(file.name)) {
         var fileContent = self.readFile(path.join(pkg.folder, file.name));
