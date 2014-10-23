@@ -175,13 +175,12 @@ Analyzer.prototype._analyze = function() {
     });
   });
 
-  //TODO link globals to definition
   _.each(self.packages, function(pkg) {
     _.each(pkg.files, function(file) {
       if (/\.js$/i.test(file.name)) {
         var fileContent = self.readFile(path.join(pkg.folder, file.name));
 
-        var content = "(function(){\n" + fileContent + "\n})();";
+        var content = "(function(){\n" + fileContent + "\n});";
 
         var ast = esprima.parse(content, {
           range: true,
@@ -194,6 +193,19 @@ Analyzer.prototype._analyze = function() {
             name: ref.identifier.name,
             line: ref.identifier.loc.start.line - 1
           };
+        });
+
+        _.each(scopes[0].implicit.variables, function(globalVar) {
+          var lines = _.map(globalVar.identifiers, function(identifier) {
+            return identifier.loc.start.line - 1;
+          });
+
+          if (!file.packageGlobals) file.packageGlobals = [];
+
+          file.packageGlobals.push({
+            name: globalVar.name,
+            lines: lines
+          });
         });
       }
     });

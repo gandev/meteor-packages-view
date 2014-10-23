@@ -1,21 +1,46 @@
-var globalsFilter = new ReactiveVar([]);
+var packageGlobalsFilter = new ReactiveVar([]);
 var usedExportsFilter = new ReactiveVar([]);
 
 Template.crossref.rendered = function() {
   $('#globals_filter').chosen({
     width: '100%'
   });
+
   $('#used_exports_filter').chosen({
     width: '100%'
   });
 
-  //TODO reselect when already selected options
+  var packageGlobalsSelected = packageGlobalsFilter.get();
+
+  $('#globals_filter option').each(function() {
+    var option = $(this);
+    if (_.find(packageGlobalsSelected, function(global) {
+        return new RegExp("^" + global).test(option.text());
+      })) {
+      option.prop('selected', true);
+    }
+  });
+
+  $("#globals_filter").trigger("chosen:updated");
 
   $("#globals_filter").on("change", function(evt) {
-    globalsFilter.set(_.map(evt.target.selectedOptions, function(option) {
+    packageGlobalsFilter.set(_.map(evt.target.selectedOptions, function(option) {
       return option.value.split("@")[0];
     }));
   });
+
+  var usedExportsSelected = usedExportsFilter.get();
+
+  $('#used_exports_filter option').each(function() {
+    var option = $(this);
+    if (_.find(usedExportsSelected, function(global) {
+        return new RegExp("^" + global).test(option.text());
+      })) {
+      option.prop('selected', true);
+    }
+  });
+
+  $("#used_exports_filter").trigger("chosen:updated");
 
   $("#used_exports_filter").on("change", function(evt) {
     usedExportsFilter.set(_.map(evt.target.selectedOptions, function(option) {
@@ -29,11 +54,11 @@ Template.crossref.destroyed = function() {
   $('#used_exports_filter').chosen('destroy');
 };
 
-var getGlobalsByPackage = function(pkg) {
+var getPackageGlobals = function(pkg) {
   var globals = [];
 
   _.each(pkg.files, function(file) {
-    _.each(file.globals, function(global) {
+    _.each(file.packageGlobals || [], function(global) {
       globals.push(global.name);
     });
   });
@@ -53,11 +78,11 @@ var getOptions = function(exports) {
         });
       });
     } else if (selectedPackages.length > 1) {
-      formattedOptions = _.map(getGlobalsByPackage(pkg), function(global) {
+      formattedOptions = _.map(getPackageGlobals(pkg), function(global) {
         return global + "@" + pkg.name;
       });
     } else {
-      formattedOptions = getGlobalsByPackage(pkg);
+      formattedOptions = getPackageGlobals(pkg);
     }
 
     allOptions = allOptions.concat(formattedOptions);
@@ -68,7 +93,7 @@ var getOptions = function(exports) {
 
 Template.crossref.helpers({
   globalsFiltered: function() {
-    var globalsAllowed = globalsFilter.get();
+    var globalsAllowed = packageGlobalsFilter.get();
 
     globalsAllowed = globalsAllowed.concat(usedExportsFilter.get());
 
@@ -86,8 +111,6 @@ Template.crossref.helpers({
     return getOptions(true);
   },
   packageGlobals: function() {
-    //TODO filter globals not defined in package
-
     Tracker.afterFlush(function() {
       $("#globals_filter").trigger("chosen:updated");
     });
