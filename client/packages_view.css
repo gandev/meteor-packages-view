@@ -1,13 +1,39 @@
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
 .node {
-  font: 10px sans-serif;
+  font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  fill: #bbb;
+}
+.node:hover {
+  fill: #000;
+}
+.node-selected {
+  font-weight: 700;
+  fill: #000;
 }
 .link {
+  stroke: steelblue;
+  stroke-opacity: .4;
   fill: none;
-  stroke: #ccc;
-  stroke-width: 1.5px;
+  pointer-events: none;
+}
+.node:hover,
+.node--source,
+.node--target {
+  font-weight: 700;
+}
+.node--source {
+  fill: #2ca02c;
+}
+.node--target {
+  fill: #d62728;
+}
+.link--source,
+.link--target {
+  stroke-opacity: 1;
+  stroke-width: 3px;
+}
+.link--source {
+  stroke: #d62728;
+}
+.link--target {
+  stroke: #2ca02c;
 }
