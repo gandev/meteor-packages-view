@@ -14,6 +14,7 @@
       <th>Package</th>
       <th>Exports</th>
       <th>Uses</th>
+      <th>Npm dependencies</th>
       <th>Imply</th>
       <th>Files</th>
     </thead>
@@ -35,6 +36,11 @@
             {{#each this.uses}} {{this.name}}
               {{#each this.arch}} | {{this}} {{/each}}
               {{#each this.options}} | {{this.name}}:{{this.value}} {{/each}}
+              <br> {{/each}}
+          </td>
+
+          <td>
+            {{#each this.npmDependencies}} {{this.name}} | {{this.version}}
               <br> {{/each}}
           </td>
 

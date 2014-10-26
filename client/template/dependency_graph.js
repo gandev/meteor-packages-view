@@ -122,14 +122,12 @@ var renderDependencyGraph = function(svg, packages) {
       return d.name;
     })
     .on("mouseover", function(d) {
-      if (packagesFilter.get().length > 0) return;
-
-      selectNodes(d);
+      if (packagesFilter.get().length === 0)
+        selectNodes(d);
     })
     .on("mouseout", function(d) {
-      if (packagesFilter.get().length > 0) return;
-
-      clearSelection();
+      if (packagesFilter.get().length === 0)
+        clearSelection();
     });
 
   Tracker.autorun(function() {

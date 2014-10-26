@@ -19,6 +19,15 @@ var isOnUse = function(statement) {
       callee.property.name === "onUse");
 };
 
+var isNpmDepends = function(statement) {
+  if (!isMemberExpression(statement)) return;
+
+  var callee = statement.expression.callee;
+
+  return callee.object.name === "Npm" &&
+    callee.property.name === "depends";
+};
+
 var isApiFunction = function(statement, func, apiVar) {
   if (!isMemberExpression(statement)) return;
 
@@ -129,6 +138,7 @@ Analyzer = function(root, githubIsSource) {
         uses: [],
         imply: [],
         files: [],
+        npmDependencies: [],
         usedExports: {}
       };
     }
@@ -172,17 +182,30 @@ Analyzer.prototype._analyze = function() {
           });
         }
       }
+
+      if (isNpmDepends(statement)) {
+        var npmDependsArg = statement.expression.arguments[0];
+
+        if (npmDependsArg.type === "ObjectExpression") {
+          _.each(npmDependsArg.properties, function(prop) {
+            pkg.npmDependencies.push({
+              name: prop.key.name || prop.key.value,
+              version: prop.value.value
+            });
+          });
+        }
+      }
     });
   });
 
   _.each(self.packages, function(pkg) {
     var usedInPackages = [];
     _.each(self.packages, function(pkgUsesSearch) {
-      var isUsed = _.find(pkgUsesSearch.uses, function(use){
+      var isUsed = _.find(pkgUsesSearch.uses, function(use) {
         return use.name === pkg.name;
       });
 
-      if(isUsed) {
+      if (isUsed) {
         usedInPackages.push(pkgUsesSearch.name);
       }
     });
