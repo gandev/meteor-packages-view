@@ -71,22 +71,20 @@ var renderDependencyGraph = function(svg, packages) {
 
   var links = createLinksBetweenNodes(svg, nodes, map);
 
-  var selectNodes = function(d, i, n, fromExtern) {
-    if (packagesFilter.get().length > 0 && !fromExtern) return;
-
+  var selectNodes = function(d) {
     node.each(function(n) {
       n.target = false;
       n.source = false;
     });
 
     links.classed("link--target", function(l) {
-        if (fromExtern && _.contains(d, l.target) || l.target === d) {
+        if (_.contains(d, l.target) || l.target === d) {
           l.source.source = true;
           return true;
         }
       })
       .classed("link--source", function(l) {
-        if (fromExtern && _.contains(d, l.source) || l.source === d) {
+        if (_.contains(d, l.source) || l.source === d) {
           l.target.target = true;
           return true;
         }
@@ -101,8 +99,6 @@ var renderDependencyGraph = function(svg, packages) {
   };
 
   var clearSelection = function(d) {
-    if (packagesFilter.get().length > 0 && d) return;
-
     links.classed("link--target", false)
       .classed("link--source", false);
 
@@ -112,7 +108,8 @@ var renderDependencyGraph = function(svg, packages) {
   };
 
   node = node.data(nodes)
-    .enter().append("text")
+    .enter()
+    .append("text")
     .attr("class", "node")
     .attr("dy", ".31em")
     .attr("transform", function(d) {
@@ -124,13 +121,21 @@ var renderDependencyGraph = function(svg, packages) {
     .text(function(d) {
       return d.name;
     })
-    .on("mouseover", selectNodes)
-    .on("mouseout", clearSelection);
+    .on("mouseover", function(d) {
+      if (packagesFilter.get().length > 0) return;
+
+      selectNodes(d);
+    })
+    .on("mouseout", function(d) {
+      if (packagesFilter.get().length > 0) return;
+
+      clearSelection();
+    });
 
   Tracker.autorun(function() {
     var selectedPackages = getSelectedPackages().fetch();
 
-    clearSelection(null, true);
+    clearSelection();
 
     var selectedNodes = [];
     _.each(selectedPackages, function(pkg) {
@@ -141,7 +146,7 @@ var renderDependencyGraph = function(svg, packages) {
       return _.contains(selectedNodes, d);
     });
 
-    selectNodes(selectedNodes, 0, 0, true);
+    selectNodes(selectedNodes);
   });
 };
 
