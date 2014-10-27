@@ -19,12 +19,12 @@ var isOnUse = function(statement) {
       callee.property.name === "onUse");
 };
 
-var isNpmDepends = function(statement) {
+var isDepends = function(statement, api) {
   if (!isMemberExpression(statement)) return;
 
   var callee = statement.expression.callee;
 
-  return callee.object.name === "Npm" &&
+  return callee.object.name === api &&
     callee.property.name === "depends";
 };
 
@@ -139,6 +139,7 @@ Analyzer = function(root, githubIsSource) {
         imply: [],
         files: [],
         npmDependencies: [],
+        cordovaDependencies: [],
         usedExports: {}
       };
     }
@@ -183,15 +184,22 @@ Analyzer.prototype._analyze = function() {
         }
       }
 
-      if (isNpmDepends(statement)) {
-        var npmDependsArg = statement.expression.arguments[0];
+      var isCordova = isDepends(statement, "Cordova");
+      if (isDepends(statement, "Npm") || isCordova) {
+        var dependsArg = statement.expression.arguments[0];
 
-        if (npmDependsArg.type === "ObjectExpression") {
-          _.each(npmDependsArg.properties, function(prop) {
-            pkg.npmDependencies.push({
+        if (dependsArg.type === "ObjectExpression") {
+          _.each(dependsArg.properties, function(prop) {
+            var dep = {
               name: prop.key.name || prop.key.value,
               version: prop.value.value
-            });
+            };
+
+            if (isCordova) {
+              pkg.cordovaDependencies.push(dep);
+            } else {
+              pkg.npmDependencies.push(dep);
+            }
           });
         }
       }

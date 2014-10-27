@@ -77,6 +77,15 @@ var getOptions = function(exports) {
           formattedOptions.push(exportName + "@" + pkgName);
         });
       });
+
+      _.each(pkg.files, function(file) {
+        _.each(file.globals, function(global) {
+          //TODO
+          if (global.name === "Npm" || global.name === "cordova") {
+            formattedOptions.push(global.name);
+          }
+        });
+      });
     } else if (selectedPackages.length > 1) {
       formattedOptions = _.map(getPackageGlobals(pkg), function(global) {
         return global + "@" + pkg.name;
