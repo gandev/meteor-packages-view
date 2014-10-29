@@ -6,16 +6,18 @@
 </body>
 
 <template name="AppLayout">
-  <div class="container-fluid" style="margin-top: 5px;">
-    <ul class="nav nav-pills">
-      <li class="{{activeTab "/packages_list"}}"><a href="/packages_list">Package list</a>
-      </li>
-      <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
-      </li>
-      <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
-      </li>
-    </ul>
-  </div>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid" style="margin-top: 5px;">
+      <ul class="nav nav-pills">
+        <li class="{{activeTab "/packages_list"}}"><a href="/packages_list">Package list</a>
+        </li>
+        <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
+        </li>
+        <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
 
   <div class="container-fluid" style="margin-top: 5px;">
     {{> package_select}}

@@ -3,7 +3,7 @@ if (Meteor.isClient) {
     activeTab: function(path) {
       var currentRoute = Router.current();
 
-      return currentRoute && currentRoute.location.path === path ? 'active' : '';
+      return currentRoute && currentRoute.location.get().path === path ? 'active' : '';
     }
   });
 }

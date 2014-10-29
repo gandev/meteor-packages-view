@@ -49,7 +49,7 @@ var renderDependencyGraph = function(svg, packages) {
     })
   };
 
-  var diameter = width;
+  var diameter = width > 1100 ? 1100 : width; //TODO position center!?
   var radius = diameter / 2;
   var innerRadius = radius - 180;
 
@@ -151,9 +151,9 @@ var renderDependencyGraph = function(svg, packages) {
 var renderAutorun;
 
 Template.dependency_graph.rendered = function() {
-  var adjustWidth = _.debounce(function() {
+  var adjustWidth = _.throttle(function() {
     Session.set("GRAPH_WIDTH", $(".container-fluid").width());
-  }, 200);
+  }, 300);
 
   adjustWidth();
 
@@ -162,9 +162,9 @@ Template.dependency_graph.rendered = function() {
   });
 
   renderAutorun = Tracker.autorun(function() {
-    var packages = Packages.find().fetch();
+    if (!packagesSubHandle.ready()) return; //TODO waitOn/render loading template
 
-    console.log("rerender graph");
+    var packages = Packages.find().fetch();
 
     width = Session.get("GRAPH_WIDTH");
     height = width;
