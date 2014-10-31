@@ -1,6 +1,11 @@
 body {
   padding-top: 70px;
 }
+/* crossref */
+
+.package-export {
+  background-color: gray;
+}
 /* dependency graph */
 
 .node {

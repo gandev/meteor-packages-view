@@ -134,5 +134,14 @@ Template.crossref.helpers({
     var pkg = Template.parentData(2);
 
     return baseUrl + "/" + pkg.name + "/" + file.name + "#L" + global.line;
+  },
+  isExportClass: function() {
+    return Packages.findOne({
+      exports: {
+        '$elemMatch': {
+          name: this.toString().split('@')[0]
+        }
+      }
+    }) ? 'package-export' : '';
   }
 });
