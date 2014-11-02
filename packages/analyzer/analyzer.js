@@ -87,14 +87,67 @@ var parseApiFunctionArgs = function(statement) {
   return results;
 };
 
+var processPackageJs = function(pkg, ast) {
+  //TODO use estraverse !?
+  _.each(ast.body, function(statement) {
+    if (isOnUse(statement)) {
+      var onUseArgs = statement.expression.arguments;
+
+      var onUseFunc = onUseArgs[0];
+      if (onUseFunc && onUseFunc.type === "FunctionExpression") {
+        var apiVar = onUseFunc.params[0].name;
+
+        _.each(onUseFunc.body.body, function(statement) {
+          if (isApiFunction(statement, "export", apiVar)) {
+            pkg.exports = pkg.exports.concat(parseApiFunctionArgs(statement));
+          }
+
+          if (isApiFunction(statement, "use", apiVar)) {
+            pkg.uses = pkg.uses.concat(parseApiFunctionArgs(statement));
+          }
+
+          if (isApiFunction(statement, "imply", apiVar)) {
+            pkg.imply = pkg.imply.concat(parseApiFunctionArgs(statement));
+          }
+
+          if (isApiFunction(statement, "addFiles", apiVar) ||
+            isApiFunction(statement, "add_files", apiVar)) {
+            pkg.files = pkg.files.concat(parseApiFunctionArgs(statement));
+          }
+        });
+      }
+    }
+
+    var isCordova = isDepends(statement, "Cordova");
+    if (isDepends(statement, "Npm") || isCordova) {
+      var dependsArg = statement.expression.arguments[0];
+
+      if (dependsArg.type === "ObjectExpression") {
+        _.each(dependsArg.properties, function(prop) {
+          var dep = {
+            name: prop.key.name || prop.key.value,
+            version: prop.value.value
+          };
+
+          if (isCordova) {
+            pkg.cordovaDependencies.push(dep);
+          } else {
+            pkg.npmDependencies.push(dep);
+          }
+        });
+      }
+    }
+  });
+};
+
 Analyzer = function(root, githubIsSource) {
   var self = this;
 
   if (githubIsSource) {
-    this.readDir = Analyzer.readDirGithub;
-    this.readFile = Analyzer.readFileGithub;
+    self.readDir = Analyzer.readDirGithub;
+    self.readFile = Analyzer.readFileGithub;
   } else {
-    this.readDir = function() {
+    self.readDir = function() {
       var files = fs.readdirSync(root);
 
       var dirList = [];
@@ -111,7 +164,7 @@ Analyzer = function(root, githubIsSource) {
 
       return dirList;
     };
-    this.readFile = fs.readFileSync;
+    self.readFile = fs.readFileSync;
   }
 
   var dirList = self.readDir(root);
@@ -128,10 +181,9 @@ Analyzer = function(root, githubIsSource) {
         return;
       }
 
-      var packageJsTree = esprima.parse(packageJsSource);
+      var packageJsAst = esprima.parse(packageJsSource);
 
-      packages[file.name] = {
-        _ast: packageJsTree,
+      var pkg = packages[file.name] = {
         name: file.name, //TODO real name!?
         folder: packagePath,
         exports: [],
@@ -142,70 +194,20 @@ Analyzer = function(root, githubIsSource) {
         cordovaDependencies: [],
         usedExports: {}
       };
+
+      processPackageJs(pkg, packageJsAst);
     }
   });
 
-  this.packages = packages;
+  self.packages = packages;
 
-  this._analyze();
+  self._analyze();
 };
 
 Analyzer.prototype._analyze = function() {
   var self = this;
 
-  _.each(self.packages, function(pkg) {
-    //TODO use estraverse !?
-    _.each(pkg._ast.body, function(statement) {
-      if (isOnUse(statement)) {
-        var onUseArgs = statement.expression.arguments;
-
-        var onUseFunc = onUseArgs[0];
-        if (onUseFunc && onUseFunc.type === "FunctionExpression") {
-          var apiVar = onUseFunc.params[0].name;
-
-          _.each(onUseFunc.body.body, function(statement) {
-            if (isApiFunction(statement, "export", apiVar)) {
-              pkg.exports = pkg.exports.concat(parseApiFunctionArgs(statement));
-            }
-
-            if (isApiFunction(statement, "use", apiVar)) {
-              pkg.uses = pkg.uses.concat(parseApiFunctionArgs(statement));
-            }
-
-            if (isApiFunction(statement, "imply", apiVar)) {
-              pkg.imply = pkg.imply.concat(parseApiFunctionArgs(statement));
-            }
-
-            if (isApiFunction(statement, "addFiles", apiVar) ||
-              isApiFunction(statement, "add_files", apiVar)) {
-              pkg.files = pkg.files.concat(parseApiFunctionArgs(statement));
-            }
-          });
-        }
-      }
-
-      var isCordova = isDepends(statement, "Cordova");
-      if (isDepends(statement, "Npm") || isCordova) {
-        var dependsArg = statement.expression.arguments[0];
-
-        if (dependsArg.type === "ObjectExpression") {
-          _.each(dependsArg.properties, function(prop) {
-            var dep = {
-              name: prop.key.name || prop.key.value,
-              version: prop.value.value
-            };
-
-            if (isCordova) {
-              pkg.cordovaDependencies.push(dep);
-            } else {
-              pkg.npmDependencies.push(dep);
-            }
-          });
-        }
-      }
-    });
-  });
-
+  //package used in other packages
   _.each(self.packages, function(pkg) {
     var usedInPackages = [];
     _.each(self.packages, function(pkgUsesSearch) {
@@ -221,6 +223,7 @@ Analyzer.prototype._analyze = function() {
     pkg.usedInPackages = usedInPackages;
   });
 
+  //used globals and package globals
   _.each(self.packages, function(pkg) {
     _.each(pkg.files, function(file) {
       if (/\.js$/i.test(file.name)) {
@@ -235,7 +238,7 @@ Analyzer.prototype._analyze = function() {
         });
         var scopes = escope.analyze(ast).scopes;
 
-        file.globals = _.map(scopes[0].through, function(ref) {
+        file.globalsUsed = _.map(scopes[0].through, function(ref) {
           var lineNumber = ref.identifier.loc.start.line - 1;
 
           return {
@@ -254,10 +257,11 @@ Analyzer.prototype._analyze = function() {
     });
   });
 
+  //used exports from package dependencies
   _.each(self.packages, function(pkg) {
     var globalsByPackage = [];
     _.each(pkg.files, function(file) {
-      _.each(file.globals, function(global) {
+      _.each(file.globalsUsed, function(global) {
         globalsByPackage.push(global.name);
       });
     });

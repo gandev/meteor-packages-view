@@ -1,6 +1,10 @@
 var packageGlobalsFilter = new ReactiveVar([]);
 var usedExportsFilter = new ReactiveVar([]);
 
+var getPackageName = function(option) {
+  return option.split("@")[0];
+};
+
 Template.crossref.rendered = function() {
   $('#globals_filter').chosen({
     width: '100%'
@@ -25,7 +29,7 @@ Template.crossref.rendered = function() {
 
   $("#globals_filter").on("change", function(evt) {
     packageGlobalsFilter.set(_.map(evt.target.selectedOptions, function(option) {
-      return option.value.split("@")[0];
+      return getPackageName(option.value);
     }));
   });
 
@@ -44,7 +48,7 @@ Template.crossref.rendered = function() {
 
   $("#used_exports_filter").on("change", function(evt) {
     usedExportsFilter.set(_.map(evt.target.selectedOptions, function(option) {
-      return option.value.split("@")[0];
+      return getPackageName(option.value);
     }));
   });
 };
@@ -79,7 +83,7 @@ var getOptions = function(exports) {
       });
 
       _.each(pkg.files, function(file) {
-        _.each(file.globals, function(global) {
+        _.each(file.globalsUsed, function(global) {
           //TODO
           if (global.name === "Npm" || global.name === "cordova") {
             formattedOptions.push(global.name);
@@ -106,7 +110,7 @@ Template.crossref.helpers({
 
     globalsAllowed = globalsAllowed.concat(usedExportsFilter.get());
 
-    var globals = _.filter(this.globals, function(global) {
+    var globals = _.filter(this.globalsUsed, function(global) {
       return _.contains(globalsAllowed, global.name);
     });
 
@@ -139,7 +143,7 @@ Template.crossref.helpers({
     return Packages.findOne({
       exports: {
         '$elemMatch': {
-          name: this.toString().split('@')[0]
+          name: getPackageName(this.toString())
         }
       }
     }) ? 'package-export' : '';
