@@ -1,9 +1,30 @@
 var packageGlobalsFilter = new ReactiveVar([]);
 var usedExportsFilter = new ReactiveVar([]);
 
+var packagesReferenced = new ReactiveVar([]);
+
 var getPackageName = function(option) {
   return option.split("@")[0];
 };
+
+Tracker.autorun(function() {
+  var selectedPackages = getSelectedPackages().fetch();
+  var globals = packageGlobalsFilter.get();
+
+  var packages = [];
+  _.each(selectedPackages, function(pkg) {
+    _.each(pkg.usedInPackages, function(pkgUses) {
+      //TODO use minimongo query!? and get rid of analyzer logic
+      _.each(pkgUses.exports, function(exp) {
+        if (_.contains(globals, exp)) {
+          packages.push(pkgUses.name);
+        }
+      });
+    });
+  });
+
+  packagesReferenced.set(packages);
+});
 
 Template.crossref.rendered = function() {
   $('#globals_filter').chosen({
@@ -105,16 +126,12 @@ var getOptions = function(exports) {
 };
 
 Template.crossref.helpers({
-  globalsFiltered: function() {
-    var globalsAllowed = packageGlobalsFilter.get();
-
-    globalsAllowed = globalsAllowed.concat(usedExportsFilter.get());
-
-    var globals = _.filter(this.globalsUsed, function(global) {
-      return _.contains(globalsAllowed, global.name);
+  packagesReferenced: function() {
+    return Packages.find({
+      name: {
+        '$in': packagesReferenced.get()
+      }
     });
-
-    return globals;
   },
   usedExportsOfDependentPackages: function() {
     Tracker.afterFlush(function() {
@@ -130,15 +147,6 @@ Template.crossref.helpers({
 
     return getOptions();
   },
-  github: function() {
-    var baseUrl = "https://github.com/meteor/meteor/blob/devel/packages";
-
-    var global = this;
-    var file = Template.parentData(1);
-    var pkg = Template.parentData(2);
-
-    return baseUrl + "/" + pkg.name + "/" + file.name + "#L" + global.line;
-  },
   isExportClass: function() {
     return Packages.findOne({
       exports: {
@@ -147,5 +155,26 @@ Template.crossref.helpers({
         }
       }
     }) ? 'package-export' : '';
+  }
+});
+
+Template.crossref_uses.helpers({
+  globalsFiltered: function() {
+    var globalsAllowed = packageGlobalsFilter.get().concat(usedExportsFilter.get());
+
+    var globals = _.filter(this.globalsUsed, function(global) {
+      return _.contains(globalsAllowed, global.name);
+    });
+
+    return globals;
+  },
+  github: function() {
+    var baseUrl = "https://github.com/meteor/meteor/blob/devel/packages";
+
+    var global = this;
+    var file = Template.parentData(1);
+    var pkg = Template.parentData(2);
+
+    return baseUrl + "/" + pkg.name + "/" + file.name + "#L" + global.line;
   }
 });

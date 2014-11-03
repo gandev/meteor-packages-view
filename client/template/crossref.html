@@ -19,8 +19,14 @@
     </div>
   </div>
 
-  {{#each packagesSelected}}
-    <h2>{{name}}</h2>
+  <h2>Uses in selected packages</h2> {{> crossref_uses packagesSelected}}
+
+  <h2>Uses of selected export in other packages</h2> {{> crossref_uses packagesReferenced}}
+</template>
+
+<template name="crossref_uses">
+  {{#each this}}
+    <h3>{{this.name}}</h3>
     {{#each this.files}}
       {{#if globalsFiltered}}
         <h4>{{this.name}}</h4>

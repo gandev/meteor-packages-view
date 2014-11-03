@@ -130,6 +130,7 @@ var renderDependencyGraph = function(svg, packages) {
         clearSelection();
     });
 
+  // TODO when destroyed?
   Tracker.autorun(function() {
     var selectedPackages = getSelectedPackages().fetch();
 

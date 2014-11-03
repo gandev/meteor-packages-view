@@ -192,6 +192,7 @@ Analyzer = function(root, githubIsSource) {
         files: [],
         npmDependencies: [],
         cordovaDependencies: [],
+        usedInPackages: [],
         usedExports: {}
       };
 
@@ -206,22 +207,6 @@ Analyzer = function(root, githubIsSource) {
 
 Analyzer.prototype._analyze = function() {
   var self = this;
-
-  //package used in other packages
-  _.each(self.packages, function(pkg) {
-    var usedInPackages = [];
-    _.each(self.packages, function(pkgUsesSearch) {
-      var isUsed = _.find(pkgUsesSearch.uses, function(use) {
-        return use.name === pkg.name;
-      });
-
-      if (isUsed) {
-        usedInPackages.push(pkgUsesSearch.name);
-      }
-    });
-
-    pkg.usedInPackages = usedInPackages;
-  });
 
   //used globals and package globals
   _.each(self.packages, function(pkg) {
@@ -283,6 +268,22 @@ Analyzer.prototype._analyze = function() {
 
       if (usedExports.length > 0) {
         pkg.usedExports[pkgUsed.name] = _.uniq(usedExports);
+      }
+    });
+  });
+
+  //where and how (which export) are packages used in other packages
+  _.each(self.packages, function(pkg) {
+    _.each(self.packages, function(pkgUsesSearch) {
+      var isUsed = _.find(pkgUsesSearch.uses, function(use) {
+        return use.name === pkg.name;
+      });
+
+      if (isUsed) {
+        pkg.usedInPackages.push({
+          name: pkgUsesSearch.name,
+          exports: self.packages[pkgUsesSearch.name].usedExports[pkg.name] || []
+        });
       }
     });
   });
