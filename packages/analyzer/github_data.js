@@ -5,7 +5,7 @@ Analyzer.readFileGithub = function(path) {
     headers: {
       'User-Agent': 'gandev'
     },
-    auth: '65ee63229a1a28c26e3f1b3f422e1a9f219299a7:x-oauth-basic'
+    auth: Meteor.settings.git_api_secret + ':x-oauth-basic'
   });
 
   if (resp.data && resp.data.type === "file") {
@@ -24,7 +24,7 @@ Analyzer.readDirGithub = function(path) {
     headers: {
       'User-Agent': 'gandev'
     },
-    auth: '65ee63229a1a28c26e3f1b3f422e1a9f219299a7:x-oauth-basic'
+    auth: Meteor.settings.git_api_secret + ':x-oauth-basic'
   });
 
   if (resp.data && resp.data instanceof Array) {
