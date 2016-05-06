@@ -5,23 +5,53 @@
 <body>
 </body>
 
-<template name="AppLayout">
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+<template name="header">
+  <nav class="navbar navbar-fixed-top">
     <div class="container-fluid" style="margin-top: 5px;">
       <ul class="nav nav-pills">
-        <li class="{{activeTab "/packages_list"}}"><a href="/packages_list">Package list</a>
+        <li class="{{activeTab "/analyzer"}}"><a href="/analyzer">|ANALYZER|</a>
         </li>
-        <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
-        </li>
-        <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
-        </li>
+
+        {{#if isAnalyzed}}
+          <li class="{{activeTab "/packages_list"}}"><a href="/packages_list">Package list</a>
+          </li>
+          <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
+          </li>
+          <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
+          </li>
+
+          <li class="pull-right">
+            {{> package_select}}
+          </li>
+        {{/if}}
       </ul>
     </div>
   </nav>
+</template>
 
-  <div class="container-fluid" style="margin-top: 5px;">
-    {{> package_select}}
-  </div>
+<template name="prettyJSON">
+  <pre>{{prettyJSON this}}</pre>
+</template>
+
+<template name="analyzer">
+  {{#each projects}}
+    <div class="form-group">
+      <label>Project path:</label>
+      <input class="form-control" type="input" name="projectPath" value="{{projectPath}}">
+    </div>
+
+    {{#each packages}}
+      <h4>{{name}}</h4>
+    {{/each}}
+
+    <button type="button" class="btn btn-default action-analyze">ANALYZE</button>
+  {{else}}
+    <button type="button" class="btn btn-primary action-create-project">CREATE</button>
+  {{/each}}
+</template>
+
+<template name="AppLayout">
+  {{> header}}
 
   <div class="container-fluid" style="margin-top: 5px;">
     {{> yield}}

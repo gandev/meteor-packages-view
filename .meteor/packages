@@ -3,11 +3,28 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-meteor-platform
+ecmascript
 insecure
-analyzer
-gandev:server-eval
-ian:bootstrap-3
-sergeyt:d3
 reactive-var
-iron:router@1.0.0-pre4
+meteor-base
+mobile-experience
+mongo
+blaze-html-templates
+session
+jquery
+tracker
+logging
+reload
+random
+ejson
+spacebars
+check
+standard-minifier-css
+standard-minifier-js
+
+d3js:d3
+twbs:bootstrap
+iron:router
+
+gandev:server-eval
+gandev:packages-analyzer

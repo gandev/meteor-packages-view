@@ -1,16 +1,19 @@
 Package.describe({
+  name: 'gandev:packages-analyzer',
   summary: "meteor package analyzer",
   version: "0.1.0",
   git: ""
 });
 
 Npm.depends({
-  'escope': '1.0.1'
+  'esprima': '2.7.2',
+  'escope': '3.6.0'
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('METEOR@0.9.4');
+  api.versionsFrom('1.3');
 
+  api.use('ecmascript');
   api.use('underscore');
   api.use('http');
 

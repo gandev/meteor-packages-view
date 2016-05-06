@@ -15,3 +15,7 @@ Template.registerHelper('packages', function() {
 Template.registerHelper('packagesSelected', function() {
   return getSelectedPackages();
 });
+
+Template.registerHelper('prettyJSON', function(obj) {
+  return JSON.stringify(this || obj, null, 2);
+});

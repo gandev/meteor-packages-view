@@ -19,6 +19,14 @@ var isOnUse = function(statement) {
       callee.property.name === "onUse");
 };
 
+var isDescribe = function(statement) {
+  if (!isMemberExpression(statement)) return;
+
+  var callee = statement.expression.callee;
+
+  return callee.object.name === "Package" && callee.property.name === "describe";
+};
+
 var isDepends = function(statement, api) {
   if (!isMemberExpression(statement)) return;
 
@@ -87,57 +95,89 @@ var parseApiFunctionArgs = function(statement) {
   return results;
 };
 
-var processPackageJs = function(pkg, ast) {
-  //TODO use estraverse !?
+const processOnUseBlock = function (pkg, statement) {
+  if (isOnUse(statement)) {
+    var onUseArgs = statement.expression.arguments;
+
+    var onUseFunc = onUseArgs[0];
+    if (onUseFunc && onUseFunc.type === "FunctionExpression") {
+      var apiVar = onUseFunc.params[0].name;
+
+      _.each(onUseFunc.body.body, function(statement) {
+        if (isApiFunction(statement, "export", apiVar)) {
+          pkg.exports = pkg.exports.concat(parseApiFunctionArgs(statement));
+        }
+
+        if (isApiFunction(statement, "use", apiVar)) {
+          pkg.uses = pkg.uses.concat(parseApiFunctionArgs(statement));
+        }
+
+        if (isApiFunction(statement, "imply", apiVar)) {
+          pkg.imply = pkg.imply.concat(parseApiFunctionArgs(statement));
+        }
+
+        if (isApiFunction(statement, "addFiles", apiVar) ||
+          isApiFunction(statement, "add_files", apiVar)) {
+          pkg.files = pkg.files.concat(parseApiFunctionArgs(statement));
+        }
+      });
+    }
+  }
+};
+
+const processDependsBlock = function (pkg, statement) {
+  var isCordova = isDepends(statement, "Cordova");
+  if (isDepends(statement, "Npm") || isCordova) {
+    var dependsArg = statement.expression.arguments[0];
+
+    if (dependsArg.type === "ObjectExpression") {
+      _.each(dependsArg.properties, function(prop) {
+        var dep = {
+          name: prop.key.name || prop.key.value,
+          version: prop.value.value
+        };
+
+        if (isCordova) {
+          pkg.cordovaDependencies.push(dep);
+        } else {
+          pkg.npmDependencies.push(dep);
+        }
+      });
+    }
+  }
+}
+
+const processDescribeBlock = function (pkg, statement) {
+  if (isDescribe(statement)) {
+    var dependsArg = statement.expression.arguments[0];
+
+    if (dependsArg.type === "ObjectExpression") {
+      _.each(dependsArg.properties, function({key, value}) {
+        pkg[key.name || key.value] = value.value;
+      });
+    }
+  }
+}
+
+var processPackageJs = function(ast) {
+  const pkg = {
+    exports: [],
+    uses: [],
+    imply: [],
+    files: [],
+    npmDependencies: [],
+    cordovaDependencies: [],
+    usedInPackages: [],
+    usedExports: {}
+  };
+
   _.each(ast.body, function(statement) {
-    if (isOnUse(statement)) {
-      var onUseArgs = statement.expression.arguments;
-
-      var onUseFunc = onUseArgs[0];
-      if (onUseFunc && onUseFunc.type === "FunctionExpression") {
-        var apiVar = onUseFunc.params[0].name;
-
-        _.each(onUseFunc.body.body, function(statement) {
-          if (isApiFunction(statement, "export", apiVar)) {
-            pkg.exports = pkg.exports.concat(parseApiFunctionArgs(statement));
-          }
-
-          if (isApiFunction(statement, "use", apiVar)) {
-            pkg.uses = pkg.uses.concat(parseApiFunctionArgs(statement));
-          }
-
-          if (isApiFunction(statement, "imply", apiVar)) {
-            pkg.imply = pkg.imply.concat(parseApiFunctionArgs(statement));
-          }
-
-          if (isApiFunction(statement, "addFiles", apiVar) ||
-            isApiFunction(statement, "add_files", apiVar)) {
-            pkg.files = pkg.files.concat(parseApiFunctionArgs(statement));
-          }
-        });
-      }
-    }
-
-    var isCordova = isDepends(statement, "Cordova");
-    if (isDepends(statement, "Npm") || isCordova) {
-      var dependsArg = statement.expression.arguments[0];
-
-      if (dependsArg.type === "ObjectExpression") {
-        _.each(dependsArg.properties, function(prop) {
-          var dep = {
-            name: prop.key.name || prop.key.value,
-            version: prop.value.value
-          };
-
-          if (isCordova) {
-            pkg.cordovaDependencies.push(dep);
-          } else {
-            pkg.npmDependencies.push(dep);
-          }
-        });
-      }
-    }
+    processOnUseBlock(pkg, statement);
+    processDependsBlock(pkg, statement);
+    processDescribeBlock(pkg, statement);
   });
+
+  return pkg;
 };
 
 Analyzer = function(root, githubIsSource) {
@@ -183,20 +223,12 @@ Analyzer = function(root, githubIsSource) {
 
       var packageJsAst = esprima.parse(packageJsSource);
 
-      var pkg = packages[file.name] = {
-        name: file.name, //TODO real name!?
+      const pkg = _.extend({
+        name: file.name,
         folder: packagePath,
-        exports: [],
-        uses: [],
-        imply: [],
-        files: [],
-        npmDependencies: [],
-        cordovaDependencies: [],
-        usedInPackages: [],
-        usedExports: {}
-      };
+      }, processPackageJs(packageJsAst));
 
-      processPackageJs(pkg, packageJsAst);
+      packages[pkg.name] = pkg;
     }
   });
 
