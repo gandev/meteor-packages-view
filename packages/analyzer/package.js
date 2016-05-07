@@ -7,7 +7,8 @@ Package.describe({
 
 Npm.depends({
   'esprima': '2.7.2',
-  'escope': '3.6.0'
+  'escope': '3.6.0',
+  'estraverse': '4.2.0'
 });
 
 Package.onUse(function(api) {
@@ -16,6 +17,7 @@ Package.onUse(function(api) {
   api.use('ecmascript');
   api.use('underscore');
   api.use('http');
+  api.use('templating-tools');
 
   api.addFiles('analyzer.js', 'server');
   api.addFiles('github_data.js', 'server');

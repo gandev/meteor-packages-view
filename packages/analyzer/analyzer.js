@@ -1,7 +1,8 @@
-var fs = Npm.require('fs');
-var path = Npm.require('path');
-var esprima = Npm.require('esprima');
-var escope = Npm.require('escope');
+const fs = Npm.require('fs');
+const path = Npm.require('path');
+const esprima = Npm.require('esprima');
+const escope = Npm.require('escope');
+const estraverse = Npm.require('estraverse');
 
 var isMemberExpression = function(statement) {
   return statement.type === "ExpressionStatement" &&
@@ -168,7 +169,9 @@ var processPackageJs = function(ast) {
     npmDependencies: [],
     cordovaDependencies: [],
     usedInPackages: [],
-    usedExports: {}
+    usedExports: {},
+
+    templates: {}
   };
 
   _.each(ast.body, function(statement) {
@@ -240,9 +243,11 @@ Analyzer = function(root, githubIsSource) {
 Analyzer.prototype._analyze = function() {
   var self = this;
 
+  this._results = [];
+
   //used globals and package globals
-  _.each(self.packages, function(pkg) {
-    _.each(pkg.files, function(file) {
+  _.each(self.packages, (pkg) => {
+    _.each(pkg.files, (file) => {
       if (/\.js$/i.test(file.name)) {
         var fileContent = self.readFile(path.join(pkg.folder, file.name));
 
@@ -270,7 +275,79 @@ Analyzer.prototype._analyze = function() {
 
           file.packageGlobals.push(globalVar.name);
         });
+
+        const templateCode = [];
+        estraverse.traverse(ast, {
+          enter: function (node, parent) {
+            if (isMemberExpression(node)) {
+              const {object, property, loc} = node.expression.callee && node.expression.callee.object || {};
+
+              const isTemplate = object && object.name === 'Template';
+              if(isTemplate) {
+                const lineNumber = loc.start.line - 1;
+                templateCode.push({
+                  name: property.name,
+                  lineContent: contentLines[lineNumber],
+                  line: lineNumber
+                });
+              }
+            }
+          }
+        });
+
+        if (templateCode.length > 0) {
+          file.templateCode = templateCode;
+        }
+      } else if(/\.html$/i.test(file.name)) {
+        const fileContent = self.readFile(path.join(pkg.folder, file.name));
+        try {
+          file.templateDefinitions = _.filter(TemplatingTools.scanHtmlForTags({
+            sourceName: file.name,
+            contents: fileContent.toString(),
+            tagNames: ['body', 'head', 'template']
+          }), tag => tag.tagName === 'template');
+        } catch(err) {
+          console.log('ERROR', file.name, err);
+
+          this._results.push({
+            type: 'ERROR',
+            description: 'Parsing templates.',
+            fileName: file.name,
+            error: err.message
+          });
+        }
       }
+    });
+  });
+
+  //defined templates
+  _.each(self.packages, function(pkg) {
+    _.each(pkg.files, function(file) {
+      _.each(file.templateDefinitions, function(def) {
+        pkg.templates[def.attribs.name] = {
+          definition: def,
+          code: []
+        };
+      });
+    });
+  });
+
+  _.each(self.packages, (pkg) => {
+    _.each(pkg.files, (file) => {
+      _.each(file.templateCode, (code) => {
+        if(pkg.templates[code.name]) {
+          pkg.templates[code.name].code.push(_.extend({fileName: file.name}, code));
+        } else {
+          console.log('ERROR', file.name, code);
+
+          this._results.push({
+            type: 'ERROR',
+            description: 'Assigning code to Template definition.',
+            fileName: file.name,
+            error: code
+          });
+        }
+      });
     });
   });
 
@@ -318,6 +395,11 @@ Analyzer.prototype._analyze = function() {
         });
       }
     });
+  });
+
+  this._results.push({
+    type: 'FINISHED',
+    description: 'Analyzing.'
   });
 };
 

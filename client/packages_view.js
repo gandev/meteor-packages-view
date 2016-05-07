@@ -22,3 +22,9 @@ Template.analyzer.events({
     Projects.insert({});
   }
 });
+
+Template.templates.helpers({
+  templates() {
+    return _.map(this.templates, value => value);
+  }
+});

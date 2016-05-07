@@ -9,16 +9,25 @@ Meteor.methods({
     const analyzer = new Analyzer(path);
 
     Projects.update(projectId, {
-      projectPath: path
+      $set: {
+        projectPath: path,
+        analyzerResults: []
+      }
     });
 
     Packages.remove({});
 
     _.each(analyzer.getPackages(), function(pkg) {
       try {
-        Packages.insert(_.extend(pkg, ));
-      } catch(e) {
-        console.log('ERROR:', pkg.name);
+        Packages.insert(pkg);
+      } catch(err) {
+        console.log('ERROR', pkg.name, err);
+      }
+    });
+
+    Projects.update(projectId, {
+      $set: {
+        analyzerResults: analyzer._results
       }
     });
 

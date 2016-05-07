@@ -3,100 +3,105 @@
     "escope": {
       "version": "3.6.0",
       "resolved": "https://registry.npmjs.org/escope/-/escope-3.6.0.tgz",
-      "from": "escope@3.6.0",
+      "from": "https://registry.npmjs.org/escope/-/escope-3.6.0.tgz",
       "dependencies": {
         "es6-map": {
           "version": "0.1.3",
           "resolved": "https://registry.npmjs.org/es6-map/-/es6-map-0.1.3.tgz",
-          "from": "es6-map@>=0.1.3 <0.2.0",
+          "from": "https://registry.npmjs.org/es6-map/-/es6-map-0.1.3.tgz",
           "dependencies": {
             "d": {
               "version": "0.1.1",
               "resolved": "https://registry.npmjs.org/d/-/d-0.1.1.tgz",
-              "from": "d@>=0.1.1 <0.2.0"
+              "from": "https://registry.npmjs.org/d/-/d-0.1.1.tgz"
             },
             "es5-ext": {
               "version": "0.10.11",
               "resolved": "https://registry.npmjs.org/es5-ext/-/es5-ext-0.10.11.tgz",
-              "from": "es5-ext@>=0.10.8 <0.11.0"
+              "from": "https://registry.npmjs.org/es5-ext/-/es5-ext-0.10.11.tgz"
             },
             "es6-iterator": {
               "version": "2.0.0",
               "resolved": "https://registry.npmjs.org/es6-iterator/-/es6-iterator-2.0.0.tgz",
-              "from": "es6-iterator@>=2.0.0 <3.0.0"
+              "from": "https://registry.npmjs.org/es6-iterator/-/es6-iterator-2.0.0.tgz"
             },
             "es6-set": {
               "version": "0.1.4",
               "resolved": "https://registry.npmjs.org/es6-set/-/es6-set-0.1.4.tgz",
-              "from": "es6-set@>=0.1.3 <0.2.0"
+              "from": "https://registry.npmjs.org/es6-set/-/es6-set-0.1.4.tgz"
             },
             "es6-symbol": {
               "version": "3.0.2",
               "resolved": "https://registry.npmjs.org/es6-symbol/-/es6-symbol-3.0.2.tgz",
-              "from": "es6-symbol@>=3.0.0 <4.0.0"
+              "from": "https://registry.npmjs.org/es6-symbol/-/es6-symbol-3.0.2.tgz"
             },
             "event-emitter": {
               "version": "0.3.4",
               "resolved": "https://registry.npmjs.org/event-emitter/-/event-emitter-0.3.4.tgz",
-              "from": "event-emitter@>=0.3.4 <0.4.0"
+              "from": "https://registry.npmjs.org/event-emitter/-/event-emitter-0.3.4.tgz"
             }
           }
         },
         "es6-weak-map": {
           "version": "2.0.1",
           "resolved": "https://registry.npmjs.org/es6-weak-map/-/es6-weak-map-2.0.1.tgz",
-          "from": "es6-weak-map@>=2.0.1 <3.0.0",
+          "from": "https://registry.npmjs.org/es6-weak-map/-/es6-weak-map-2.0.1.tgz",
           "dependencies": {
             "d": {
               "version": "0.1.1",
               "resolved": "https://registry.npmjs.org/d/-/d-0.1.1.tgz",
-              "from": "d@>=0.1.1 <0.2.0"
+              "from": "https://registry.npmjs.org/d/-/d-0.1.1.tgz"
             },
             "es5-ext": {
               "version": "0.10.11",
               "resolved": "https://registry.npmjs.org/es5-ext/-/es5-ext-0.10.11.tgz",
-              "from": "es5-ext@>=0.10.8 <0.11.0"
+              "from": "https://registry.npmjs.org/es5-ext/-/es5-ext-0.10.11.tgz"
             },
             "es6-iterator": {
               "version": "2.0.0",
               "resolved": "https://registry.npmjs.org/es6-iterator/-/es6-iterator-2.0.0.tgz",
-              "from": "es6-iterator@>=2.0.0 <3.0.0"
+              "from": "https://registry.npmjs.org/es6-iterator/-/es6-iterator-2.0.0.tgz"
             },
             "es6-symbol": {
               "version": "3.0.2",
               "resolved": "https://registry.npmjs.org/es6-symbol/-/es6-symbol-3.0.2.tgz",
-              "from": "es6-symbol@>=3.0.0 <4.0.0"
+              "from": "https://registry.npmjs.org/es6-symbol/-/es6-symbol-3.0.2.tgz"
             }
           }
         },
         "esrecurse": {
           "version": "4.1.0",
           "resolved": "https://registry.npmjs.org/esrecurse/-/esrecurse-4.1.0.tgz",
-          "from": "esrecurse@>=4.1.0 <5.0.0",
+          "from": "https://registry.npmjs.org/esrecurse/-/esrecurse-4.1.0.tgz",
           "dependencies": {
             "estraverse": {
               "version": "4.1.1",
               "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.1.1.tgz",
-              "from": "estraverse@>=4.1.0 <4.2.0"
+              "from": "https://registry.npmjs.org/estraverse/-/estraverse-4.1.1.tgz"
             },
             "object-assign": {
               "version": "4.1.0",
               "resolved": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.0.tgz",
-              "from": "object-assign@>=4.0.1 <5.0.0"
+              "from": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.0.tgz"
             }
           }
         },
         "estraverse": {
           "version": "4.2.0",
           "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.2.0.tgz",
-          "from": "estraverse@>=4.1.1 <5.0.0"
+          "from": "https://registry.npmjs.org/estraverse/-/estraverse-4.2.0.tgz"
         }
       }
     },
     "esprima": {
       "version": "2.7.2",
       "resolved": "https://registry.npmjs.org/esprima/-/esprima-2.7.2.tgz",
-      "from": "esprima@2.7.2"
+      "from": "https://registry.npmjs.org/esprima/-/esprima-2.7.2.tgz"
+    },
+    "estraverse": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.2.0.tgz",
+      "from": "estraverse@4.2.0"
     }
   }
 }

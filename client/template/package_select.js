@@ -4,9 +4,13 @@ Template.package_select.rendered = function() {
   });
 
   $("#packages_select").on("change", function(evt) {
-    packagesFilter.set(_.map(evt.target.selectedOptions, function(option) {
+    const selectedPackages = _.map(evt.target.selectedOptions, function(option) {
       return option.value;
-    }));
+    });
+
+    packagesFilter.set(selectedPackages);
+
+    window.localStorage.setItem('packagesView:selectedPackages', selectedPackages);
   });
 
   //TODO investigate...

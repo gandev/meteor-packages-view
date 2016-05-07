@@ -17,6 +17,8 @@
           </li>
           <li class="{{activeTab "/crossref"}}"><a href="/crossref">Crossref</a>
           </li>
+          <li class="{{activeTab "/templates"}}"><a href="/templates">Templates</a>
+          </li>
           <li class="{{activeTab "/dependency_graph"}}"><a href="/dependency_graph">Dependency graph</a>
           </li>
 
@@ -41,8 +43,10 @@
     </div>
 
     {{#each packages}}
-      <h4>{{name}}</h4>
+      <h5>{{name}}</h5>
     {{/each}}
+
+    {{> prettyJSON analyzerResults}}
 
     <button type="button" class="btn btn-default action-analyze">ANALYZE</button>
   {{else}}
@@ -51,9 +55,31 @@
 </template>
 
 <template name="AppLayout">
-  {{> header}}
+  <div class="container-fluid">
+    <div class="row app-header">
+      {{> header}}
+    </div>
 
-  <div class="container-fluid" style="margin-top: 5px;">
-    {{> yield}}
+    <div class="row app-content">
+      {{> yield}}
+    </div>
   </div>
+</template>
+
+<template name="templates">
+  {{#each packagesSelected}}
+    <h4>{{this.name}}</h4>
+    {{#each templates}}
+      {{this.definition.attribs.name}}
+
+      <ul>
+        {{#each this.code}}
+          <li>
+            <a target="_blank" href="{{github}}">{{this.fileName}}:{{this.line}}</a>
+            <code>{{this.lineContent}}</code>
+          </li>
+        {{/each}}
+      </ul>
+    {{/each}}
+  {{/each}}
 </template>

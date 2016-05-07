@@ -1,7 +1,16 @@
-body {
-  padding-top: 70px;
+.app-content {
+  padding: 20px;
+  margin-top: 60px;
 }
-/* crossref */
+
+.app-header {
+  position: fixed;
+  z-index: 100;
+  background-color: white;
+
+  height: 70px;
+  width: 100vw;
+}
 
 .package-export {
   background-color: rgb(219, 206, 206);
